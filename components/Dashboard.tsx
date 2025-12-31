@@ -119,67 +119,47 @@ export default function Dashboard() {
       const uniqueTickers = getAllTickers();
       const symbols = uniqueTickers.join(',');
 
-      let newPrices: Record<string, PriceData> = {};
-      let success = false;
+      // Use our Finnhub API route
+      const response = await fetch(`/api/prices?symbols=${symbols}`, {
+        signal: AbortSignal.timeout(15000)
+      });
 
-      // Try multiple data sources with CORS support
-      try {
-        const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
-
-        const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-        if (response.ok) {
-          const data = await response.json();
-          data.quoteResponse?.result?.forEach((quote: { symbol: string; regularMarketPrice: number; regularMarketChange: number; regularMarketChangePercent: number }) => {
-            newPrices[quote.symbol] = {
-              price: quote.regularMarketPrice,
-              change: quote.regularMarketChange,
-              changePercent: quote.regularMarketChangePercent
-            };
-          });
-          if (Object.keys(newPrices).length > 0) success = true;
-        }
-      } catch (e) {
-        console.log('Proxy method 1 failed:', e);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch prices');
       }
 
-      // Method 2: Alternative CORS proxy
-      if (!success) {
-        try {
-          const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
-          const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`;
+      const data = await response.json();
 
-          const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-          if (response.ok) {
-            const data = await response.json();
-            data.quoteResponse?.result?.forEach((quote: { symbol: string; regularMarketPrice: number; regularMarketChange: number; regularMarketChangePercent: number }) => {
-              newPrices[quote.symbol] = {
-                price: quote.regularMarketPrice,
-                change: quote.regularMarketChange,
-                changePercent: quote.regularMarketChangePercent
-              };
-            });
-            if (Object.keys(newPrices).length > 0) success = true;
-          }
-        } catch (e) {
-          console.log('Proxy method 2 failed:', e);
+      if (data.success && data.prices) {
+        const newPrices: Record<string, PriceData> = {};
+
+        Object.entries(data.prices).forEach(([symbol, quote]: [string, unknown]) => {
+          const q = quote as { price: number; change: number; changePercent: number };
+          newPrices[symbol] = {
+            price: q.price,
+            change: q.change,
+            changePercent: q.changePercent
+          };
+        });
+
+        if (Object.keys(newPrices).length > 0) {
+          setPrices(newPrices);
+          setLastUpdate(new Date());
+          setConnected(true);
+          setError(null);
+          setLoading(false);
+          checkAlerts(newPrices);
+        } else {
+          throw new Error('No price data received');
         }
-      }
-
-      if (success && Object.keys(newPrices).length > 0) {
-        setPrices(newPrices);
-        setLastUpdate(new Date());
-        setConnected(true);
-        setError(null);
-        setLoading(false);
-        checkAlerts(newPrices);
       } else {
-        throw new Error('All fetch methods failed');
+        throw new Error('Invalid response format');
       }
     } catch (err) {
       console.error('Fetch error:', err);
       setConnected(false);
-      setError('Using estimated prices - live feed unavailable (CORS blocked)');
+      setError('Using fallback prices - Finnhub API unavailable');
       setPrices(FALLBACK_PRICES);
       setLoading(false);
     }
