@@ -84,9 +84,9 @@ export const SIGNALS_CONFIG: OptionsSignal[] = [
     lag: 13,
     winRate: 68,
     isCluster: false,
-    catalyst: ['AI regulatory vote Jan 15', 'CHIPS Act phase 2'],
+    catalyst: ['GTC 2026 keynote Mar 17', 'Blackwell Ultra production ramp'],
     risks: ['Crowded trade', 'Elevated IV into earnings'],
-    optionsConfig: { strikeOffset: 0.10, dte: 35, expiry: 'Feb 21' }
+    optionsConfig: { strikeOffset: 0.10, dte: 35, expiry: 'Feb 7' }
   },
   {
     ticker: 'LMT',
@@ -103,9 +103,9 @@ export const SIGNALS_CONFIG: OptionsSignal[] = [
     lag: '12-17',
     winRate: null,
     isCluster: true,
-    catalyst: ['NDAA vote Dec 20', '$886B defense budget'],
+    catalyst: ['FY2026 defense appropriations', '$920B defense budget'],
     risks: ['Shutdown risk', 'Budget priced in'],
-    optionsConfig: { strikeOffset: 0.05, dte: 28, expiry: 'Jan 17' }
+    optionsConfig: { strikeOffset: 0.05, dte: 28, expiry: 'Jan 31' }
   },
   {
     ticker: 'GOOGL',
@@ -118,9 +118,9 @@ export const SIGNALS_CONFIG: OptionsSignal[] = [
     lag: 13,
     winRate: 61,
     isCluster: false,
-    catalyst: ['DOJ antitrust hearing Jan 8', 'AI tailwind Q1'],
+    catalyst: ['DOJ antitrust remedy hearing Feb 2026', 'Gemini 2.0 momentum'],
     risks: ['Binary ruling', 'No cluster confirmation'],
-    optionsConfig: { strikeOffset: 0.065, dte: 42, expiry: 'Feb 7' }
+    optionsConfig: { strikeOffset: 0.065, dte: 42, expiry: 'Feb 14' }
   },
   {
     ticker: 'AMD',
@@ -133,9 +133,9 @@ export const SIGNALS_CONFIG: OptionsSignal[] = [
     lag: 12,
     winRate: 71,
     isCluster: false,
-    catalyst: ['CES 2025 keynote Jan 6', 'MI300X demand'],
+    catalyst: ['CES 2026 keynote Jan 7', 'MI350X launch'],
     risks: ['NVDA competition', 'China exposure'],
-    optionsConfig: { strikeOffset: 0.08, dte: 32, expiry: 'Jan 24' }
+    optionsConfig: { strikeOffset: 0.08, dte: 32, expiry: 'Feb 7' }
   },
   {
     ticker: 'RTX',
@@ -151,9 +151,9 @@ export const SIGNALS_CONFIG: OptionsSignal[] = [
     lag: '9-11',
     winRate: 58,
     isCluster: true,
-    catalyst: ['NDAA Patriot expansion', 'NATO spending'],
+    catalyst: ['Patriot system expansion contracts', 'NATO 3% GDP target'],
     risks: ['Defense rotation', 'Low beta'],
-    optionsConfig: { strikeOffset: 0.07, dte: 35, expiry: 'Jan 31' }
+    optionsConfig: { strikeOffset: 0.07, dte: 35, expiry: 'Feb 7' }
   }
 ];
 
@@ -170,7 +170,7 @@ export const STOCK_SIGNALS_CONFIG: StockSignal[] = [
     amount: '$250K-$500K each',
     lag: '11-12',
     isCluster: true,
-    catalyst: ['Army Vantage expansion', 'NATO AI initiative'],
+    catalyst: ['Maven Smart System expansion', 'NATO AIP platform adoption'],
     risks: ['High valuation', 'Insider selling'],
     stockConfig: { stopPercent: 0.10, targets: [0.13, 0.26, 0.46] }
   },
@@ -184,7 +184,7 @@ export const STOCK_SIGNALS_CONFIG: StockSignal[] = [
     lag: 12,
     winRate: 64,
     isCluster: false,
-    catalyst: ['DOJ body camera mandate', 'Taser 10 adoption'],
+    catalyst: ['Federal body camera mandate 2026', 'Draft One AI integration'],
     risks: ['High price', 'Single politician'],
     stockConfig: { stopPercent: 0.11, targets: [0.10, 0.20, 0.31] }
   },
@@ -198,7 +198,7 @@ export const STOCK_SIGNALS_CONFIG: StockSignal[] = [
     lag: 13,
     winRate: 59,
     isCluster: false,
-    catalyst: ['Aerospace spin benefits', 'Engine backlog'],
+    catalyst: ['GE Aerospace record backlog', 'LEAP engine demand'],
     risks: ['Cycle peak', 'Single signal'],
     stockConfig: { stopPercent: 0.10, targets: [0.09, 0.18, 0.29] }
   }
@@ -282,19 +282,20 @@ export const HIGH_PROB_CONFIG: HighProbOption[] = [
   }
 ];
 
+// Fallback prices updated Jan 2026 - used when Finnhub API unavailable
 export const FALLBACK_PRICES: Record<string, { price: number; change: number; changePercent: number }> = {
-  NVDA: { price: 190.26, change: -0.27, changePercent: -0.15 },
-  LMT: { price: 485.00, change: 2.10, changePercent: 0.43 },
-  GOOGL: { price: 192.50, change: 1.15, changePercent: 0.60 },
-  AMD: { price: 124.80, change: -0.85, changePercent: -0.68 },
-  RTX: { price: 121.50, change: 0.45, changePercent: 0.37 },
-  PLTR: { price: 75.20, change: 1.20, changePercent: 1.62 },
-  AXON: { price: 685.00, change: -3.50, changePercent: -0.51 },
-  GE: { price: 178.50, change: 0.90, changePercent: 0.51 },
-  SPY: { price: 597.50, change: 2.35, changePercent: 0.39 },
-  QQQ: { price: 525.80, change: 3.10, changePercent: 0.59 },
-  AAPL: { price: 254.50, change: 1.20, changePercent: 0.47 },
-  MSFT: { price: 430.80, change: 2.45, changePercent: 0.57 }
+  NVDA: { price: 145.50, change: 1.25, changePercent: 0.87 },
+  LMT: { price: 512.00, change: 3.40, changePercent: 0.67 },
+  GOOGL: { price: 198.75, change: 1.85, changePercent: 0.94 },
+  AMD: { price: 128.40, change: -0.65, changePercent: -0.50 },
+  RTX: { price: 128.90, change: 0.75, changePercent: 0.59 },
+  PLTR: { price: 78.50, change: 1.45, changePercent: 1.88 },
+  AXON: { price: 720.00, change: 5.20, changePercent: 0.73 },
+  GE: { price: 185.60, change: 1.10, changePercent: 0.60 },
+  SPY: { price: 610.25, change: 2.80, changePercent: 0.46 },
+  QQQ: { price: 545.90, change: 3.65, changePercent: 0.67 },
+  AAPL: { price: 262.30, change: 1.55, changePercent: 0.59 },
+  MSFT: { price: 448.50, change: 2.90, changePercent: 0.65 }
 };
 
 export function getAllTickers(): string[] {

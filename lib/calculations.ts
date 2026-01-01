@@ -53,14 +53,17 @@ export function calcOptionMetrics(stockPrice: number, strike: number, dte: numbe
   const callPrice = stockPrice * normCDF(d1) - strike * Math.exp(-r * T) * normCDF(d2);
   const pop = normCDF(d2) * 100;
 
+  // PoP for OTM calls is typically lower, ITM calls can be 60-90%+
+  const adjustedPoP = Math.max(5, Math.min(95, pop));
+
   return {
     delta: parseFloat(delta.toFixed(2)),
     gamma: parseFloat(gamma.toFixed(3)),
     theta: parseFloat(theta.toFixed(2)),
     vega: parseFloat(vega.toFixed(2)),
     premium: Math.max(0.1, callPrice).toFixed(2),
-    pop: Math.max(5, Math.min(50, pop)).toFixed(0),
-    prob100: Math.max(3, pop * 0.5).toFixed(0)
+    pop: adjustedPoP.toFixed(0),
+    prob100: Math.max(3, Math.min(50, pop * 0.5)).toFixed(0)
   };
 }
 
