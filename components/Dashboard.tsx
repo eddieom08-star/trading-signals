@@ -18,6 +18,8 @@ import { StockSignalCard } from './StockSignalCard';
 import { IndexOptionsCard } from './IndexOptionsCard';
 import { HighProbCard } from './HighProbCard';
 import { AlertPanel } from './AlertPanel';
+import { InsiderSignalsCard } from './InsiderSignalsCard';
+import { GovernmentContractsCard } from './GovernmentContractsCard';
 
 export default function Dashboard() {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
@@ -401,6 +403,54 @@ export default function Dashboard() {
                   />
                 ))}
               </div>
+            </section>
+
+            {/* Live Insider Activity Scanner */}
+            <section>
+              <InsiderSignalsCard
+                prices={prices}
+                onSignalFound={(signal) => {
+                  const alertKey = `insider-${signal.symbol}-${signal.netDirection}-${Math.floor(Date.now() / 300000)}`;
+                  if (!processedAlertsRef.current.has(alertKey)) {
+                    processedAlertsRef.current.add(alertKey);
+                    const newAlert: TelegramAlert = {
+                      type: signal.netDirection === 'BUY' ? 'success' : signal.netDirection === 'SELL' ? 'warning' : 'info',
+                      ticker: signal.symbol,
+                      message: `Insider ${signal.netDirection} - $${(signal.totalValue / 1000000).toFixed(1)}M by ${signal.insiderCount} insider(s)`,
+                      time: new Date(),
+                      priority: 'high'
+                    };
+                    setAlerts(prev => [newAlert, ...prev].slice(0, 15));
+                    playAlertSound(newAlert.type);
+                    sendNotification(`${signal.symbol} Insider Alert`, newAlert.message);
+                    if (telegramAutoPost) postAlert(newAlert);
+                  }
+                }}
+              />
+            </section>
+
+            {/* Government Contracts Scanner */}
+            <section>
+              <GovernmentContractsCard
+                prices={prices}
+                onSignalFound={(signal) => {
+                  const alertKey = `contract-${signal.symbol}-${Math.floor(Date.now() / 600000)}`;
+                  if (!processedAlertsRef.current.has(alertKey)) {
+                    processedAlertsRef.current.add(alertKey);
+                    const newAlert: TelegramAlert = {
+                      type: 'success',
+                      ticker: signal.symbol,
+                      message: `New ${signal.sector} contracts - $${(signal.totalContractValue / 1000000).toFixed(0)}M`,
+                      time: new Date(),
+                      priority: 'normal'
+                    };
+                    setAlerts(prev => [newAlert, ...prev].slice(0, 15));
+                    playAlertSound('info');
+                    sendNotification(`${signal.symbol} Contract Alert`, newAlert.message);
+                    if (telegramAutoPost) postAlert(newAlert);
+                  }
+                }}
+              />
             </section>
 
             {/* Index Options */}
