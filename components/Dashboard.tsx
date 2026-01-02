@@ -31,33 +31,17 @@ export default function Dashboard() {
   const [expandedStock, setExpandedStock] = useState<string | null>('PLTR');
   const [connected, setConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showSettings, setShowSettings] = useState(false);
   const [telegramAutoPost, setTelegramAutoPost] = useState(false);
 
-  const audioContextRef = useRef<AudioContext | null>(null);
   const processedAlertsRef = useRef<Set<string>>(new Set());
-  const soundEnabledRef = useRef(soundEnabled);
   const telegramAutoPostRef = useRef(telegramAutoPost);
-
-  // Keep refs in sync with state
-  useEffect(() => {
-    soundEnabledRef.current = soundEnabled;
-  }, [soundEnabled]);
 
   useEffect(() => {
     telegramAutoPostRef.current = telegramAutoPost;
   }, [telegramAutoPost]);
-
-  // Initialize audio context
-  useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    return () => {
-      if (audioContextRef.current) audioContextRef.current.close();
-    };
-  }, []);
 
   // Check notification permission on mount
   useEffect(() => {
@@ -76,44 +60,6 @@ export default function Dashboard() {
     setNotificationPermission(permission);
     setNotificationsEnabled(permission === 'granted');
   };
-
-  const playAlertSound = useCallback((type: string = 'info') => {
-    if (!soundEnabledRef.current || !audioContextRef.current) return;
-
-    try {
-      const ctx = audioContextRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      if (type === 'success') {
-        oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-        oscillator.frequency.setValueAtTime(1108, ctx.currentTime + 0.1);
-        oscillator.type = 'sine';
-      } else if (type === 'danger') {
-        oscillator.frequency.setValueAtTime(440, ctx.currentTime);
-        oscillator.frequency.setValueAtTime(330, ctx.currentTime + 0.15);
-        oscillator.frequency.setValueAtTime(440, ctx.currentTime + 0.3);
-        oscillator.type = 'square';
-      } else {
-        oscillator.frequency.setValueAtTime(660, ctx.currentTime);
-        oscillator.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
-        oscillator.type = 'sine';
-      }
-
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.4);
-    } catch (e) {
-      console.error('Audio error:', e);
-    }
-  }, []);
 
   const sendNotification = useCallback((title: string, body: string) => {
     if (!notificationsEnabled || notificationPermission !== 'granted') return;
@@ -257,9 +203,8 @@ export default function Dashboard() {
     if (newAlerts.length > 0) {
       setAlerts(prev => [...newAlerts, ...prev].slice(0, 15));
 
-      // Play sound and send notification for each new alert
+      // Send notification for each new alert
       newAlerts.forEach(alert => {
-        playAlertSound(alert.type);
         sendNotification(`${alert.ticker} Alert`, alert.message);
 
         // Auto-post to Telegram if enabled
@@ -268,7 +213,7 @@ export default function Dashboard() {
         }
       });
     }
-  }, [playAlertSound, sendNotification]);
+  }, [sendNotification]);
 
   const dismissAlert = (index: number) => setAlerts(prev => prev.filter((_, i) => i !== index));
   const clearAllAlerts = () => setAlerts([]);
@@ -288,7 +233,6 @@ export default function Dashboard() {
       priority: 'high'
     };
     setAlerts(prev => [testAlertData, ...prev]);
-    playAlertSound('success');
     sendNotification('Test Alert', 'Notifications are working correctly!');
   };
 
@@ -466,7 +410,6 @@ export default function Dashboard() {
                       priority: signal.confidence === 'HIGH' ? 'high' : 'normal'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    playAlertSound(newAlert.type);
                     sendNotification(`${signal.ticker} Dynamic Signal`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
@@ -490,7 +433,6 @@ export default function Dashboard() {
                       priority: 'high'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    playAlertSound(newAlert.type);
                     sendNotification(`${signal.symbol} Insider Alert`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
@@ -514,7 +456,6 @@ export default function Dashboard() {
                       priority: 'normal'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    playAlertSound('info');
                     sendNotification(`${signal.symbol} Contract Alert`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
@@ -563,8 +504,6 @@ export default function Dashboard() {
               alerts={alerts}
               onDismiss={dismissAlert}
               onClearAll={clearAllAlerts}
-              soundEnabled={soundEnabled}
-              onToggleSound={() => setSoundEnabled(!soundEnabled)}
               notificationsEnabled={notificationsEnabled}
               onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
               notificationPermission={notificationPermission}

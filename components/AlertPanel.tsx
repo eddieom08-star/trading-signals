@@ -1,14 +1,12 @@
 'use client';
 
-import { X, Bell, BellOff, Volume2, VolumeX, Send } from 'lucide-react';
+import { X, Bell, BellOff, Send } from 'lucide-react';
 import { TelegramAlert, postAlert } from '@/lib/telegram';
 
 interface AlertPanelProps {
   alerts: TelegramAlert[];
   onDismiss: (index: number) => void;
   onClearAll: () => void;
-  soundEnabled: boolean;
-  onToggleSound: () => void;
   notificationsEnabled: boolean;
   onToggleNotifications: () => void;
   notificationPermission: NotificationPermission;
@@ -19,8 +17,6 @@ export function AlertPanel({
   alerts,
   onDismiss,
   onClearAll,
-  soundEnabled,
-  onToggleSound,
   notificationsEnabled,
   onToggleNotifications,
   notificationPermission,
@@ -59,16 +55,6 @@ export function AlertPanel({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={onToggleSound}
-            className={`p-1.5 rounded transition-colors ${
-              soundEnabled ? 'text-green-400 hover:bg-green-500/20' : 'text-gray-500 hover:bg-gray-700'
-            }`}
-            title={soundEnabled ? 'Sound enabled' : 'Sound disabled'}
-          >
-            {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-          </button>
-
           {notificationPermission === 'granted' ? (
             <button
               onClick={onToggleNotifications}
