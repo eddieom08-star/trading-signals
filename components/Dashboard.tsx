@@ -38,6 +38,17 @@ export default function Dashboard() {
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const processedAlertsRef = useRef<Set<string>>(new Set());
+  const soundEnabledRef = useRef(soundEnabled);
+  const telegramAutoPostRef = useRef(telegramAutoPost);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    telegramAutoPostRef.current = telegramAutoPost;
+  }, [telegramAutoPost]);
 
   // Initialize audio context
   useEffect(() => {
@@ -66,7 +77,7 @@ export default function Dashboard() {
   };
 
   const playAlertSound = useCallback((type: string = 'info') => {
-    if (!soundEnabled || !audioContextRef.current) return;
+    if (!soundEnabledRef.current || !audioContextRef.current) return;
 
     try {
       const ctx = audioContextRef.current;
@@ -101,7 +112,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error('Audio error:', e);
     }
-  }, [soundEnabled]);
+  }, []);
 
   const sendNotification = useCallback((title: string, body: string) => {
     if (!notificationsEnabled || notificationPermission !== 'granted') return;
@@ -251,12 +262,12 @@ export default function Dashboard() {
         sendNotification(`${alert.ticker} Alert`, alert.message);
 
         // Auto-post to Telegram if enabled
-        if (telegramAutoPost) {
+        if (telegramAutoPostRef.current) {
           postAlert(alert);
         }
       });
     }
-  }, [playAlertSound, sendNotification, telegramAutoPost]);
+  }, [playAlertSound, sendNotification]);
 
   const dismissAlert = (index: number) => setAlerts(prev => prev.filter((_, i) => i !== index));
   const clearAllAlerts = () => setAlerts([]);
@@ -423,7 +434,7 @@ export default function Dashboard() {
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
                     playAlertSound(newAlert.type);
                     sendNotification(`${signal.symbol} Insider Alert`, newAlert.message);
-                    if (telegramAutoPost) postAlert(newAlert);
+                    if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
                 }}
               />
@@ -447,7 +458,7 @@ export default function Dashboard() {
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
                     playAlertSound('info');
                     sendNotification(`${signal.symbol} Contract Alert`, newAlert.message);
-                    if (telegramAutoPost) postAlert(newAlert);
+                    if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
                 }}
               />
