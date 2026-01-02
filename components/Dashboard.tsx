@@ -376,9 +376,29 @@ export default function Dashboard() {
           <div className="lg:col-span-2 space-y-6">
             {/* Options Signals */}
             <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Activity size={16} className="text-amber-400" />
-                <h2 className="text-lg font-semibold text-white">Options Signals</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity size={16} className="text-amber-400" />
+                  <h2 className="text-lg font-semibold text-white">Options Signals</h2>
+                  <span className="px-2 py-0.5 text-xs bg-gray-800 text-gray-500 rounded" title="Signals are manually curated - prices update live">
+                    Static Config
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {lastUpdate && (
+                    <span className="text-xs text-gray-500">
+                      Prices: {lastUpdate.toLocaleTimeString()}
+                    </span>
+                  )}
+                  <button
+                    onClick={fetchPrices}
+                    disabled={loading}
+                    className="p-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                    title="Refresh prices"
+                  >
+                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
                 {SIGNALS_CONFIG.map(config => (
@@ -397,9 +417,22 @@ export default function Dashboard() {
 
             {/* Stock Signals */}
             <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Activity size={16} className="text-cyan-400" />
-                <h2 className="text-lg font-semibold text-white">Stock Signals</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity size={16} className="text-cyan-400" />
+                  <h2 className="text-lg font-semibold text-white">Stock Signals</h2>
+                  <span className="px-2 py-0.5 text-xs bg-gray-800 text-gray-500 rounded" title="Signals are manually curated - prices update live">
+                    Static Config
+                  </span>
+                </div>
+                <button
+                  onClick={fetchPrices}
+                  disabled={loading}
+                  className="p-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                  title="Refresh prices"
+                >
+                  <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                </button>
               </div>
               <div className="space-y-3">
                 {STOCK_SIGNALS_CONFIG.map(config => (
