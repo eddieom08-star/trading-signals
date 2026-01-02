@@ -20,6 +20,7 @@ import { HighProbCard } from './HighProbCard';
 import { AlertPanel } from './AlertPanel';
 import { InsiderSignalsCard } from './InsiderSignalsCard';
 import { GovernmentContractsCard } from './GovernmentContractsCard';
+import { DynamicSignalsCard } from './DynamicSignalsCard';
 
 export default function Dashboard() {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
@@ -447,6 +448,30 @@ export default function Dashboard() {
                   />
                 ))}
               </div>
+            </section>
+
+            {/* Auto-Generated Signals from Finnhub Data */}
+            <section>
+              <DynamicSignalsCard
+                prices={prices}
+                onSignalFound={(signal) => {
+                  const alertKey = `dynamic-${signal.ticker}-${signal.direction}-${Math.floor(Date.now() / 600000)}`;
+                  if (!processedAlertsRef.current.has(alertKey)) {
+                    processedAlertsRef.current.add(alertKey);
+                    const newAlert: TelegramAlert = {
+                      type: signal.direction === 'LONG' ? 'success' : 'warning',
+                      ticker: signal.ticker,
+                      message: `${signal.signalType} Signal: ${signal.direction} - Score ${signal.score} (${signal.confidence})`,
+                      time: new Date(),
+                      priority: signal.confidence === 'HIGH' ? 'high' : 'normal'
+                    };
+                    setAlerts(prev => [newAlert, ...prev].slice(0, 15));
+                    playAlertSound(newAlert.type);
+                    sendNotification(`${signal.ticker} Dynamic Signal`, newAlert.message);
+                    if (telegramAutoPostRef.current) postAlert(newAlert);
+                  }
+                }}
+              />
             </section>
 
             {/* Live Insider Activity Scanner */}
