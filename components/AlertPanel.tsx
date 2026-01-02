@@ -1,26 +1,18 @@
 'use client';
 
-import { X, Bell, BellOff, Send } from 'lucide-react';
+import { X, Bell, Send } from 'lucide-react';
 import { TelegramAlert, postAlert } from '@/lib/telegram';
 
 interface AlertPanelProps {
   alerts: TelegramAlert[];
   onDismiss: (index: number) => void;
   onClearAll: () => void;
-  notificationsEnabled: boolean;
-  onToggleNotifications: () => void;
-  notificationPermission: NotificationPermission;
-  onRequestNotificationPermission: () => void;
 }
 
 export function AlertPanel({
   alerts,
   onDismiss,
-  onClearAll,
-  notificationsEnabled,
-  onToggleNotifications,
-  notificationPermission,
-  onRequestNotificationPermission
+  onClearAll
 }: AlertPanelProps) {
   const handlePostAllAlerts = async () => {
     for (const alert of alerts) {
@@ -55,26 +47,6 @@ export function AlertPanel({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {notificationPermission === 'granted' ? (
-            <button
-              onClick={onToggleNotifications}
-              className={`p-1.5 rounded transition-colors ${
-                notificationsEnabled ? 'text-green-400 hover:bg-green-500/20' : 'text-gray-500 hover:bg-gray-700'
-              }`}
-              title={notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
-            >
-              {notificationsEnabled ? <Bell size={14} /> : <BellOff size={14} />}
-            </button>
-          ) : notificationPermission === 'default' ? (
-            <button
-              onClick={onRequestNotificationPermission}
-              className="p-1.5 rounded text-amber-400 hover:bg-amber-500/20 transition-colors"
-              title="Enable notifications"
-            >
-              <Bell size={14} />
-            </button>
-          ) : null}
-
           {alerts.length > 0 && (
             <>
               <button

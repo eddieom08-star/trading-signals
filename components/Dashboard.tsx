@@ -31,8 +31,6 @@ export default function Dashboard() {
   const [expandedStock, setExpandedStock] = useState<string | null>('PLTR');
   const [connected, setConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showSettings, setShowSettings] = useState(false);
   const [telegramAutoPost, setTelegramAutoPost] = useState(false);
 
@@ -42,37 +40,6 @@ export default function Dashboard() {
   useEffect(() => {
     telegramAutoPostRef.current = telegramAutoPost;
   }, [telegramAutoPost]);
-
-  // Check notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-      if (Notification.permission === 'granted') setNotificationsEnabled(true);
-    }
-  }, []);
-
-  const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
-      alert('This browser does not support notifications');
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    setNotificationPermission(permission);
-    setNotificationsEnabled(permission === 'granted');
-  };
-
-  const sendNotification = useCallback((title: string, body: string) => {
-    if (!notificationsEnabled || notificationPermission !== 'granted') return;
-
-    try {
-      new Notification(title, {
-        body,
-        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📊</text></svg>'
-      });
-    } catch (e) {
-      console.error('Notification error:', e);
-    }
-  }, [notificationsEnabled, notificationPermission]);
 
   const fetchPrices = useCallback(async () => {
     try {
@@ -203,17 +170,14 @@ export default function Dashboard() {
     if (newAlerts.length > 0) {
       setAlerts(prev => [...newAlerts, ...prev].slice(0, 15));
 
-      // Send notification for each new alert
+      // Auto-post to Telegram if enabled
       newAlerts.forEach(alert => {
-        sendNotification(`${alert.ticker} Alert`, alert.message);
-
-        // Auto-post to Telegram if enabled
         if (telegramAutoPostRef.current) {
           postAlert(alert);
         }
       });
     }
-  }, [sendNotification]);
+  }, []);
 
   const dismissAlert = (index: number) => setAlerts(prev => prev.filter((_, i) => i !== index));
   const clearAllAlerts = () => setAlerts([]);
@@ -228,12 +192,11 @@ export default function Dashboard() {
     const testAlertData: TelegramAlert = {
       type: 'success',
       ticker: 'TEST',
-      message: 'Test alert - notifications working!',
+      message: 'Test alert working!',
       time: new Date(),
       priority: 'high'
     };
     setAlerts(prev => [testAlertData, ...prev]);
-    sendNotification('Test Alert', 'Notifications are working correctly!');
   };
 
   return (
@@ -410,7 +373,6 @@ export default function Dashboard() {
                       priority: signal.confidence === 'HIGH' ? 'high' : 'normal'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    sendNotification(`${signal.ticker} Dynamic Signal`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
                 }}
@@ -433,7 +395,6 @@ export default function Dashboard() {
                       priority: 'high'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    sendNotification(`${signal.symbol} Insider Alert`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
                 }}
@@ -456,7 +417,6 @@ export default function Dashboard() {
                       priority: 'normal'
                     };
                     setAlerts(prev => [newAlert, ...prev].slice(0, 15));
-                    sendNotification(`${signal.symbol} Contract Alert`, newAlert.message);
                     if (telegramAutoPostRef.current) postAlert(newAlert);
                   }
                 }}
@@ -504,10 +464,6 @@ export default function Dashboard() {
               alerts={alerts}
               onDismiss={dismissAlert}
               onClearAll={clearAllAlerts}
-              notificationsEnabled={notificationsEnabled}
-              onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
-              notificationPermission={notificationPermission}
-              onRequestNotificationPermission={requestNotificationPermission}
             />
 
             {/* Quick Stats */}
